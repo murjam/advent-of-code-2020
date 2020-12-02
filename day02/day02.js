@@ -17,7 +17,7 @@ function checkValidity2(line) {
     const firstChar = pass.charAt(from - 1);
     const secondChar = pass.charAt(to - 1);
 
-    return (firstChar === char || secondChar === char) && firstChar !== secondChar;
+    return (firstChar === char) !== (secondChar === char);
 }
 
 function func1(passwords) {
