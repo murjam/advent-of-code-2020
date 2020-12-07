@@ -1,15 +1,70 @@
 const { readFileToString } = require('../lib/lib.js');
 
-function func1(lines) {
-    return lines;
+function buildRules(rules) {
+    const result = {};
+
+    for (const rule of rules) {
+        const [bag, containsWhat] = rule.split(' bags contain ');
+
+        if (containsWhat === 'no other bags.') {
+            result[bag] = {};
+        } else  {
+            const res = {};
+
+            const options = containsWhat.split(', ');
+            for (const option of options) {
+              const nums = option.match(/^([0-9]+) ([a-z ]+) bag[s.]*$/);
+              res[nums[2]] = parseInt(nums[1]);
+            }
+            result[bag] = res;
+        }
+    }
+
+    return result;
+}
+
+function canContain(bagType, rules, what = 'shiny gold') {
+    let contain = false;
+
+    for (const inside of Object.keys(rules[bagType])) {
+        if (inside === what) {
+            return true;
+        }
+
+        if (canContain(inside, rules)) {
+            return true;
+        }
+    }
+
+    return contain;
+}
+
+function getChildrenCount(bagType, rules, multiplier = 1) {
+    let count = 0;
+    for (const inside of Object.keys(rules[bagType])) {
+        const amount = rules[bagType][inside];
+        count += amount * multiplier;
+        count += getChildrenCount(inside, rules, amount * multiplier);
+    }
+    return count;
 }
 
 if (require.main === module) {
     (async () => {
         const input = await readFileToString('input.txt');
-        const numbers = func1(input.split('\n'));
+        const lines = input.split('\n');
+        const rules = buildRules(lines);
 
-        console.log(numbers);
+
+        let count = 0;
+        for (const bagType in rules) {
+            const can = canContain(bagType, rules);
+            if (can) {
+                count++;
+            }
+        }
+        console.log(`can contain gold count: ${count}`);
+        console.log(`shiny gold children count: ${getChildrenCount('shiny gold', rules)}`);
     })();
 }
 
