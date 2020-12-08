@@ -69,7 +69,6 @@ function isValid(pass) {
 }
 
 function func1(rows) {
-
     const passports = rows.split('\n\n');
 
     return passports.map(p => isValid(p));
