@@ -48,30 +48,44 @@ function willPass(jolts) {
     return true;
 }
 
-const checkedPasses = {};
+function combinations(sorted, allRemovable) {
+    let count = 0;
+    const traverse = function(removed, removable) {
+        const pass = willPass(sorted.filter(n => !removed.includes(n)));
+        if (!removed.length && !removable.length) {
+            return;
+        }
+        if (!removable.length) {
+            if (pass) {
+                count++;
+            }
+        } else {
+            if (!pass) {
+                return;
+            }
 
-function findAllPasses(sorted, removable, removed = []) {
+            const [first, ...rest] = removable;
+            traverse([...removed, removable[0]], rest);
+            traverse(removed, rest);
+        }
+    }
+    traverse([], allRemovable);
+    return count;
+}
+
+function findAllPasses(sorted, removable) {
     let count = 0;
 
     for (let i = 0; i < removable.length ; i++) {
-        const removeThis = removable[i];
-        const allRemoved = [...removed, removeThis].sort((a, b) => a - b);
-        const sortedWithRemoved = sorted.filter((n) => n !== removeThis && !allRemoved.includes(n));
-        const passId = allRemoved.join(',');
-        let pass;
-        if (passId in checkedPasses) {
-            continue;
-            // pass = checkedPasses[passId];
-        } else {
-            pass = willPass(sortedWithRemoved);
-        }
-        checkedPasses[passId] = pass;
+         const removeThis = removable[i];
+         const sortedWithRemoved = sorted.filter((n) => n !== removeThis && !allRemoved.includes(n));
+         const pass = willPass(sortedWithRemoved);
 
-        if (pass) {
-            count++;
-            count += findAllPasses(sorted, removable.filter(n => n !== removeThis), allRemoved);
-        }
-    }
+         if (pass) {
+             count++;
+             count += findAllPasses(sorted, removable.filter(n => !allRemoved.includes(n)), allRemoved);
+         }
+     }
 
     return count;
 }
@@ -85,9 +99,11 @@ if (require.main === module) {
         sorted.push(highest + 3);
 
         const { differences, removable } = getDifferences(sorted);
-        const allPasses = findAllPasses(sorted, removable);
 
-        console.log({ allPasses, differences, removable });
+        console.log(combinations(sorted, removable));
+        // const allPasses = findAllPasses(sorted, removable);
+
+        console.log({ differences, removable });
     })();
 }
 
