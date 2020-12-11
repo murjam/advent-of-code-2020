@@ -1,5 +1,6 @@
 const {readFileToString} = require('../lib/lib.js');
 
+<<<<<<< HEAD
 function buildRules(lines) {
     const rules = {};
 
@@ -9,10 +10,22 @@ function buildRules(lines) {
         if (containsWhat === 'no other bags.') {
             rules[bag] = {};
         } else {
+=======
+function buildRules(rules) {
+    const result = {};
+
+    for (const rule of rules) {
+        const [bag, containsWhat] = rule.split(' bags contain ');
+
+        if (containsWhat === 'no other bags.') {
+            result[bag] = {};
+        } else  {
+>>>>>>> 0e0702b (Day7 complete)
             const res = {};
 
             const options = containsWhat.split(', ');
             for (const option of options) {
+<<<<<<< HEAD
                 const nums = option.match(/^([0-9]+) ([a-z ]+) bag[s.]*$/);
                 res[nums[2]] = parseInt(nums[1]);
             }
@@ -21,6 +34,16 @@ function buildRules(lines) {
     }
 
     return rules;
+=======
+              const nums = option.match(/^([0-9]+) ([a-z ]+) bag[s.]*$/);
+              res[nums[2]] = parseInt(nums[1]);
+            }
+            result[bag] = res;
+        }
+    }
+
+    return result;
+>>>>>>> 0e0702b (Day7 complete)
 }
 
 function canContain(bagType, rules, what = 'shiny gold') {
@@ -55,6 +78,7 @@ if (require.main === module) {
         const lines = input.split('\n');
         const rules = buildRules(lines);
 
+<<<<<<< HEAD
         let count = 0;
         for (const bagType in rules) {
             const can = canContain(bagType, rules);
@@ -63,6 +87,16 @@ if (require.main === module) {
             }
         }
 
+=======
+
+        let count = 0;
+        for (const bagType in rules) {
+            const can = canContain(bagType, rules);
+            if (can) {
+                count++;
+            }
+        }
+>>>>>>> 0e0702b (Day7 complete)
         console.log(`can contain gold count: ${count}`);
         console.log(`shiny gold children count: ${getChildrenCount('shiny gold', rules)}`);
     })();
