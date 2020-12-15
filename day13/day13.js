@@ -29,7 +29,6 @@ function busCheck(bus, step = 1, startTime = 0, check = 0) {
 }
 
 function leave(buses) {
-    let earliest = 1;
     const busTuples = [];
 
     for (let i = 0; i < buses.length; i++) {
