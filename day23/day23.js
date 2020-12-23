@@ -11,6 +11,51 @@ function shiftCircle(circle, newFirstIndex) {
     return [...circle, ...addToTheEnd];
 }
 
+function findMaxAndMin(circle) {
+    let min = Number.MAX_VALUE;
+    let max = Number.MIN_VALUE;
+
+    for (const cupLabel of circle) {
+        if (cupLabel > max) {
+            max = cupLabel;
+        }
+        if (cupLabel < min) {
+            min = cupLabel;
+        }
+    }
+
+    return {
+        max,
+        min,
+    };
+}
+
+function initMap(circle) {
+    const map = new Map();
+
+    for (const cupLabel of circle) {
+        const cup = {
+            label: cupLabel,
+        }
+        map.set(cupLabel, cup);
+    }
+
+    const first = map.get(circle[0]);
+
+    circle.forEach((cupLabel, i) => {
+        const cup = map.get(cupLabel);
+        const nextLabel = circle[i + 1];
+
+        if (map.has(nextLabel)) {
+            cup.next = map.get(nextLabel);
+        } else {
+            cup.next = first;
+        }
+    });
+
+    return map;
+}
+
 function fillOneMillion(circle) {
     circle = circle.slice();
     const highest = Math.max(...circle);
@@ -24,60 +69,48 @@ function fillOneMillion(circle) {
     return circle;
 }
 
-function grabPlays(circle, moves = 10) {
-    let minValue = Number.MAX_VALUE;
-    let maxValue = Number.MIN_VALUE;
+function grabPlays(currentCup, map, { max, min }, moves = 10) {
 
-    for (const cupLabel of circle) {
-        if (cupLabel > maxValue) {
-            maxValue = cupLabel;
-        }
-        if (cupLabel < minValue) {
-            minValue = cupLabel;
-        }
-    }
-
-    // console.log(minValue, maxValue)
     for (let move = 1; move <= moves; move++) {
-        console.time('time');
-        console.log(`\n-- move ${move} --`);
-        // console.log(`cups: ${circle.join(', ')}`);
+        // console.log(`\n-- move ${move} --`);
+        const pick = [currentCup.next, currentCup.next.next, currentCup.next.next.next];
 
-        const currentCup = circle[0];
-        const pick = circle.slice(1, 4);
-        // console.log(`pick up: ${pick.join(', ')}`);
-        circle = [currentCup].concat(circle.slice(4));
+        // console.log(`pick up: ${pick.map(c => c.label).join(', ')}`);
 
-        let destination = currentCup - 1;
-        if (destination < minValue) {
-            destination = maxValue;
+        let destinationLabel = currentCup.label - 1;
+        if (destinationLabel < min) {
+            destinationLabel = max;
         }
 
-        while (pick.includes(destination)) {
-            destination -= 1;
-            if (destination < minValue) {
-                destination = maxValue;
+        while (pick.some(c => c.label === destinationLabel)) {
+            destinationLabel -= 1;
+            if (destinationLabel < min) {
+                destinationLabel = max;
             }
         }
-        // console.log(`destination: ${destination}`);
+        // console.log(`destination: ${destinationLabel}`);
 
-        const destinationIndex = circle.indexOf(destination);
-        // console.log(`destindex: ${destinationIndex}`, circle, typeof destination);
-        circle = [].concat(circle.slice(1, destinationIndex + 1)).concat(pick).concat(circle.slice(destinationIndex + 1))
-        circle.push = circle[0];
+        const destination = map.get(destinationLabel);
+        const destinationNext = destination.next;
+        destination.next = pick[0];
+        currentCup.next = pick[2].next;
+        pick[2].next = destinationNext;
 
-        console.timeEnd('time');
+        currentCup = currentCup.next;
     }
 
-    return circle;
+
+    return map;
 }
 
 function cupGame(input, moves = 10) {
     let circle = input.split('').map(n => parseInt(n, 10));
-
     circle = fillOneMillion(circle);
+    const maxAndMin = findMaxAndMin(circle);
+    const cupsMap = initMap(circle);
+    const currentCup = cupsMap.get(circle[0]);
 
-    return grabPlays(circle, moves);
+    return grabPlays(currentCup, cupsMap, maxAndMin, moves);
 }
 
 if (require.main === module) {
@@ -85,16 +118,23 @@ if (require.main === module) {
         const input = await readFileToString('input.txt');
         const result = cupGame(input, 1e7);
 
-        const index = result.indexOf(1);
+        const first = result.get(1);
+        const second = first.next;
+        const third = second.next;
 
         console.log();
-        // 67384529
-        // console.log(
-        //     shiftCircle(result, index)
-        //         .filter((el, i) => i !== 0)
-        //         .join('')
-        // );
-        console.log(result[index + 1] * result[index + 2]);
+
+        // part 1
+        // const firstResult = [];
+        //
+        // let current = second;
+        // while (current.label !== 1) {
+        //     firstResult.push(current.label);
+        //     current = current.next;
+        // }
+
+        // console.log(firstResult.join(''));
+        console.log(second.label * third.label);
     })();
 }
 
